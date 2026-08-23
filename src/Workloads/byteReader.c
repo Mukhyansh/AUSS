@@ -8,6 +8,10 @@
 #define SIZE 4*1024*1024
 
 int main(int argc,char* argv[]){
+
+    freopen("/dev/null","w",stderr);
+    freopen("/dev/null","w",stdout);
+
     int t=60;
     if(argc>1){
         t=atoi(argv[1]);
