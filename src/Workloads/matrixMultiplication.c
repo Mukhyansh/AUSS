@@ -10,8 +10,7 @@ int main(int argc,char* argv[]){
     int t=30;
     
     if(argc>1){
-        n=atoi(argv[1]);
-        t=atoi(argv[2]);
+        t=atoi(argv[1]);
     }
 
     double* A=(double*)malloc((size_t)n*n*sizeof(double));
@@ -49,7 +48,7 @@ int main(int argc,char* argv[]){
             for(int k=0;k<n;k++){
                 double res1=A[i*n + k];
                 for(int j=0;j<n;j++){
-                    C[i*n +j]=res1*B[k*n +j];
+                    C[i*n +j]+=res1*B[k*n +j];
                 }
             }
         }

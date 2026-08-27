@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "trie.c"
+#include "comp.h"
 
 #define MAX_SEQUENCE_SIZE 65536
 
@@ -11,17 +11,18 @@ static inline void write_code_to_file(FILE *file,uint32_t code,size_t bytes_per_
 	fwrite(&code,bytes_per_code,1,file);
 }
 
-int main(void){
-	FILE *input_file=fopen("1.txt","r");
+void compressFile(){
+	FILE *input_file=fopen("Compressor/1.txt","r");
 	if(!input_file){
+		
 		printf("Failed opening input file.\n");
-		return 1;
+		return;
 	}
 
-	FILE *output_file=fopen("compressed.dat","wb");
+	FILE *output_file=fopen("Compressor/compressed.dat","wb");
 	if(!output_file){
 		printf("Failed opening output file.\n");
-		return 1;
+		return ;
 	}
 
 	fseek(output_file,sizeof(long int),SEEK_SET);
@@ -31,7 +32,7 @@ int main(void){
 	unsigned char c=fgetc(input_file);
 	if(feof(input_file)){
 		printf("File is empty.\n");
-		return 1;
+		return ;
 	}
 
 	long int file_offset_24bit_codes=0;
@@ -84,6 +85,4 @@ int main(void){
 	fclose(output_file);
 	fclose(input_file);
 	freenode(tree);
-
-	return 0;
 }
