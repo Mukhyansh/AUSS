@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdint.h>
 #include<unistd.h>
+#include "comp.h"
 
 #define MAX_SEQUENCE_SIZE 65536
 
@@ -33,17 +34,17 @@ static inline void write_contents_to_file(FILE *file,char *buffer,unsigned int s
 	fwrite(buffer,sizeof(char)*size,1,file);
 }
 
-int main(void){
-	FILE *input_file=fopen("compressed.dat","r");
+void decompressFile(){
+	FILE *input_file=fopen("Compressor/compressed.dat","r");
 	if(!input_file){
-		printf("Failed opening input file.\n");
-		return 1;
+		fprintf(stderr,"Failed opening input file.\n");
+		return;
 	}
 
-	FILE *output_file=fopen("output_file.dat","wb");
+	FILE *output_file=fopen("Compressor/output_file.dat","wb");
 	if(!output_file){
-		printf("Failed opening output file.\n");
-		return 1;
+		fprintf(stderr,"Failed opening output file.\n");
+		return;
 	}
 
 	uint32_t total_codes;
@@ -57,21 +58,21 @@ int main(void){
 	fread(&old,sizeof(uint16_t),1,input_file);
 
 	if(feof(input_file)){
-		printf("File is empty.\n");
-		return 1;
+		fprintf(stderr,"File is empty.\n");
+		return;
 	}
 
 	char **table=(char **)calloc(total_codes,sizeof(char *));
 	if(!table){
-		printf("Can't allocate memory.");
-		return 1;
+		fprintf(stderr,"Can't allocate memory.");
+		return;
 	}
 
 	for(current_code=0;current_code<256;current_code++){
 		table[current_code]=(char *)malloc(2);
 		if(!table[current_code]){
-			printf("Can't allocate memory.");
-			return 1;
+			fprintf(stderr,"Can't allocate memory.");
+			return;
 		}
 		table[current_code][0]=(char)current_code;
 		table[current_code][1]='\0';
@@ -103,21 +104,16 @@ int main(void){
 		table[current_code]=(char *)malloc(strlen(table[old])+2);
 		if(!table[current_code]){
 			printf("Can't allocate memory.");
-			return 1;
+			return;
 		}
 
 		sprintf(table[current_code++],"%s%c",table[old],c);
 		old=new;
 	}
-
-	system("rm decompress");
-	system("rm compress");
-	system("rm compressed.dat");
+	system("rm Compressor/compressed.dat");
 	sleep(1);
-	system("rm output_file.dat");
+	system("rm Compressor/output_file.dat");
 	fclose(output_file);
 	fclose(input_file);
 	free_table(table,total_codes);
-
-	return 0;
 }
