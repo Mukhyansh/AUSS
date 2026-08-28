@@ -4,10 +4,11 @@
 #include<sys/wait.h>
 #include<time.h>
 
-#define TIME_SLICE "2"
+#define TIME_SLICE "20"
+#define OFILE "output_file.txt"
 
 int main(void){
-    FILE* fp=fopen("/src/Workloads/pid_output.txt","a");
+    FILE* fp=fopen("/src/Workloads/outout_file.txt","a");
     fprintf(stderr,"5 instances of a workload has started!\n");
     for(int i=0;i<5;i++){
         if(access("./byteReader",X_OK)!=0){
@@ -24,13 +25,21 @@ int main(void){
         else if(pid==0){
             execvp("./byteReader",(char*[]){"./byteReader",TIME_SLICE,NULL});
         }
-        else waitpid(pid,NULL,0);
+        else{
+            FILE* fp=fopen(OFILE,"a");
+            if(fp){
+                fprintf(fp,"pid: %d\n",pid);
+                fprintf(stderr,"Wrote the pid to file!\n");
+            }
+            else{
+                fprintf(stderr,"Error opening output_file.txt!\n");
+            }
+            waitpid(pid,NULL,0);
+        } 
         time_t end=time(NULL);
         double sec=difftime(end,start);
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"Byte Reader has ended\n");
-        printf("pid: %d\n",pid);
-        fflush(stdout);
     }
     puts("\n\n\nAnother workload is starting!\n\n");
     sleep(1);
@@ -53,13 +62,21 @@ int main(void){
         else if(pid==0){
             execvp("./matrixMultiplication",(char*[]){"./matrixMultiplication",TIME_SLICE,NULL});
         }
-        else waitpid(pid,NULL,0);
+        else{
+            FILE* fp=fopen(OFILE,"a");
+            if(fp){
+                fprintf(fp,"pid: %d\n",pid);
+                fprintf(stderr,"Wrote the pid to file!\n");
+            }
+            else{
+                fprintf(stderr,"Error opening output_file.txt!\n");
+            }
+            waitpid(pid,NULL,0);
+        } 
         time_t end=time(NULL);
         double sec=difftime(end,start);
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"matrixMultiplication has ended\n");
-        printf("pid: %d\n",pid);
-        fflush(stdout);
     }
 
     puts("\n\n\nAnother workload is starting!\n\n");
@@ -83,13 +100,21 @@ int main(void){
         else if(pid==0){
             execvp("./compressor",(char*[]){"./compressor",TIME_SLICE,NULL});
         }
-        else waitpid(pid,NULL,0);
+        else{
+            FILE* fp=fopen(OFILE,"a");
+            if(fp){
+                fprintf(fp,"pid: %d\n",pid);
+                fprintf(stderr,"Wrote the pid to file!\n");
+            }
+            else{
+                fprintf(stderr,"Error opening output_file.txt!\n");
+            }
+            waitpid(pid,NULL,0);
+        } 
         time_t end=time(NULL);
         double sec=difftime(end,start);
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"compressor has ended\n");
-        printf("pid: %d\n",pid);
-        fflush(stdout);
     }
     return 0;
 }

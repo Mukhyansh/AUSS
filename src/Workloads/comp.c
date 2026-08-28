@@ -3,12 +3,16 @@
 #include<unistd.h>
 
 int main(int argc,char* argv[]){
+
     time_t start=time(NULL);
+
     if(argc<2){
         perror("Not enough arguments!");
         return 1;
     }
+
     int n=atoi(argv[1]);
+
     while(time(NULL)-start!=n){
         printf("Compressing file...\n");
         compressFile();
@@ -17,6 +21,7 @@ int main(int argc,char* argv[]){
         decompressFile();
         printf("File decompressed!\n");
     }
+    
     fflush(stdout);
     return EXIT_SUCCESS;
 }

@@ -88,10 +88,14 @@ test-matrix: matrixMultiplication
 	./matrixMultiplication 2
 
 test-reader: byteReader
-	@echo "Testing byteReader for 2 seconds..."
-	./byteReader 2
+	@echo "Testing byteReader for 20 seconds..."
+	./byteReader 20
 
-test-all: test-compressor test-matrix test-reader
-	@echo "✓ All workloads tested successfully!"
+test-all: Activate_Workloads
+	@echo "Testing Activate_Workloads..."
+	./Activate_Workloads > output_file.txt
+
+# test-all: test-compressor test-matrix test-reader
+# 	@echo "✓ All workloads tested successfully!"
 
 .PHONY: all clean help verify test-compressor test-matrix test-reader test-all
