@@ -93,7 +93,7 @@ test-reader: byteReader
 
 test-all: Activate_Workloads
 	@echo "Testing Activate_Workloads..."
-	./Activate_Workloads > output_file.txt
+	./Activate_Workloads
 
 # test-all: test-compressor test-matrix test-reader
 # 	@echo "✓ All workloads tested successfully!"
