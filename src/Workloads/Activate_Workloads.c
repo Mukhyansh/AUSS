@@ -5,10 +5,10 @@
 #include<time.h>
 
 #define TIME_SLICE "20"
-#define OFILE "output_file.txt"
+// #define OFILE "output_file.txt"
 
 int main(void){
-    FILE* fp=fopen("/src/Workloads/outout_file.txt","a");
+    // FILE* fp=fopen("/src/Workloads/output_file.txt","a");
     fprintf(stderr,"5 instances of a workload has started!\n");
     for(int i=0;i<5;i++){
         if(access("./byteReader",X_OK)!=0){
@@ -26,10 +26,11 @@ int main(void){
             execvp("./byteReader",(char*[]){"./byteReader",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen(OFILE,"a");
+            FILE* fp=fopen("output_file.txt","a");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");
+                fclose(fp);
             }
             else{
                 fprintf(stderr,"Error opening output_file.txt!\n");
@@ -43,6 +44,7 @@ int main(void){
     }
     puts("\n\n\nAnother workload is starting!\n\n");
     sleep(1);
+
     /*
         MATRIX_MULTIPLIER
     */
@@ -63,10 +65,11 @@ int main(void){
             execvp("./matrixMultiplication",(char*[]){"./matrixMultiplication",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen(OFILE,"a");
+            FILE* fp=fopen("output_file.txt","a");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");
+                fclose(fp);
             }
             else{
                 fprintf(stderr,"Error opening output_file.txt!\n");
@@ -101,10 +104,11 @@ int main(void){
             execvp("./compressor",(char*[]){"./compressor",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen(OFILE,"a");
+            FILE* fp=fopen("output_file.txt","a");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");
+                fclose(fp);
             }
             else{
                 fprintf(stderr,"Error opening output_file.txt!\n");
@@ -116,5 +120,6 @@ int main(void){
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"compressor has ended\n");
     }
+    rm("rm output_file.txt");
     return 0;
 }
