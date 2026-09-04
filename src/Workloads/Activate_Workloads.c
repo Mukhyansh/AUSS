@@ -120,6 +120,6 @@ int main(void){
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"compressor has ended\n");
     }
-    rm("rm output_file.txt");
+    rm("rm output_file.txt");       
     return 0;
 }
