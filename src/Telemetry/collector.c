@@ -5,6 +5,9 @@
 #include<sys/wait.h>
 #include<stdarg.h>
 
+#define TIME_CUT 100
+#define MAX_PIDS 100000; //to be changed later obv
+
 #define OUTPUT_FILE "record.csv"
 #define INPUT_FILE "../Workloads/output_file.txt"
 
@@ -28,22 +31,23 @@ void infoLog();
 
 int read_info_stat(const char* ch){
     FILE* fp=fopen(INPUT_FILE,"r");
+    FILE* out=fopen("test.txt","w+");
     if(!fp) return 0;
     
     int count=0;
+    char* str;
+    char ch;
     int n;
-    while(fscanf(fp,"%d",&n)){
+    int* pids=(int*)malloc(sizeof(MAX_PIDs));
+    while(fscanf(fp,"%s %c %d",&str,&ch,&n)==3){
         count++;
-        if(count==14){
-            //read utime
-        }
-        if(count==15){
-            //read stime
-        }
+        
     }
+    return 1;
 }
 
 int main(int argc,char* argv[]){
-    
+    const char* ch;
+    int x=read_info_stat(ch);
     return EXIT_SUCCESS;
 }
