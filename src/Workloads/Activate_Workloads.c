@@ -4,7 +4,7 @@
 #include<sys/wait.h>
 #include<time.h>
 
-#define TIME_SLICE "20"
+#define TIME_SLICE "1"
 // #define OFILE "output_file.txt"
 
 int main(void){
@@ -120,6 +120,6 @@ int main(void){
         fprintf(stderr,"%.0f seconds.\n",sec);
         fprintf(stderr,"compressor has ended\n");
     }
-    rm("rm output_file.txt");       
+    // rm("rm output_file.txt");       
     return 0;
 }

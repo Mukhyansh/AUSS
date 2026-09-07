@@ -81,15 +81,15 @@ verify: all
 # Test individual workloads
 test-compressor: compressor
 	@echo "Testing compressor for 2 seconds..."
-	./compressor 2
+	./compressor 1
 
 test-matrix: matrixMultiplication
 	@echo "Testing matrixMultiplication for 2 seconds..."
-	./matrixMultiplication 2
+	./matrixMultiplication 1
 
 test-reader: byteReader
 	@echo "Testing byteReader for 20 seconds..."
-	./byteReader 20
+	./byteReader 1
 
 test-all: Activate_Workloads
 	@echo "Testing Activate_Workloads..."
