@@ -4,7 +4,7 @@
 #include<sys/wait.h>
 #include<time.h>
 
-#define TIME_SLICE "1"
+#define TIME_SLICE "60"
 // #define OFILE "output_file.txt"
 
 int main(void){
