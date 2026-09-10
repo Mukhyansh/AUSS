@@ -9,6 +9,7 @@
 #define TIME_CUT 100
 #define MAX_PIDS 10 //to be changed later obv
 #define MAX_SAMPLES 500//Skeptical about its value
+#define JIFFY_TO_MS 10;
 
 #define OUTPUT_FILE "record.csv"
 #define INPUT_FILE "../Workloads/output_file.txt"
@@ -99,6 +100,81 @@ void collect_telemetry(workload* proc){
     int maxm=120;
 
     proc->samples=malloc(sizeof(sample)*MAX_SAMPLES);
+    if(!proc->samples){
+        perror("Memory Allocation Failed!\n");
+        return;
+    }
+    proc->no_samples=0;
+
+    while(isAlive(proc->pid)){
+        if(time(NULL)-start_time> maxm){
+            perror("timeout collecting the Telemetry!\n");
+            return;
+        }
+        if(proc->no_samples >= MAX_SAMPLES){
+            perror("Sample overload!\n");
+            return;
+        }
+
+        sample* s=&proc->samples[proc->no_samples];
+
+        if(read_info_stat(proc->pid,&s->stat) && read_info_io(proc->pid,&s->io)){
+            proc->no_samples++;
+        }
+        
+        usleep(TIME_CUT * 1000);   
+    }
+
+    if(proc->no_samples==0){
+        perror("NO samples collected!\n");
+        free(proc->samples);
+        proc->samples=NULL;
+        return;
+    }
+
+    printf("Collected %d samples for PID: %d",proc->no_samples,proc->pid);
+}
+
+void calculate_result(workload* proc,result* res){
+    if(!proc->samples || proc->no_samples < 2){
+        perror("Cannot! Not enough samples!\n");
+        return;
+    }
+    sample* first=&proc->samples[0];
+    sample* last=&proc->samples[proc->no_samples-1];
+
+
+    //CPU time
+    long elapsed_ms=(long)(proc->no_samples-1) * TIME_CUT;
+    if(elapsed_ms<=0) elapsed_ms=1;
+
+    //cpu time is in jiffies(small/blink unit of time)
+    long cpu_jiffies=(last->stat.utime - first->stat.utime)+ (last->stat.stime - first->stat.stime);
+    
+    long cpu_time_ms=cpu_jiffies*JIFFY_TO_MS;
+
+    double cpu_percent=(double)cpu_time_ms/elapsed_ms *100.0;
+
+    //IO DATA
+
+    long total_read=last->io.byte_read-first->io.byte_read;
+    long toral_write=last->io.write_read-first->io.write_read;
+    long total_io_bytes=total_read+toral_write;
+
+    double io_throughput_mb=(double)total_io_bytes/elapsed_ms;
+    io_throughput_mb/=1000000;
+
+    long io_ops=(last->io.read_ops-first->io.read_ops)+(last->io.write_ops-first->io.write_ops);
+    double io_ops_per_sec=io_ops/(elapsed_ms/1000);
+
+    res->cpu_p=cpu_percent;
+    res->pid=proc->pid;
+    res->elapsed_t=elapsed_ms;
+    strncpy(res->name,proc->name,sizeof(res->name)-1);
+    strncpy(res->type,proc->type,sizeof(res->type)-1);
+    res->io_ops_per_sec=io_ops_per_sec;
+    res->samples_collected=proc->no_samples;
+    res->io_throughput=io_ops;
 }
 
 int read_info_stat(int pid,workload_cpu* proc){
