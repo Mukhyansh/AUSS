@@ -167,6 +167,8 @@ void calculate_result(workload* proc,result* res){
     long io_ops=(last->io.read_ops-first->io.read_ops)+(last->io.write_ops-first->io.write_ops);
     double io_ops_per_sec=io_ops/(elapsed_ms/1000);
 
+    //STORING RESULTS
+
     res->cpu_p=cpu_percent;
     res->pid=proc->pid;
     res->elapsed_t=elapsed_ms;
@@ -175,6 +177,58 @@ void calculate_result(workload* proc,result* res){
     res->io_ops_per_sec=io_ops_per_sec;
     res->samples_collected=proc->no_samples;
     res->io_throughput=io_ops;
+}
+
+int analyze_queue(result* res,int* num_res){
+    FILE* fp=fopen(INPUT_FILE,"r");
+    if(!fp) return 1;
+
+    char line[512];
+
+    int wait_count=0;
+    while(access(INPUT_FILE,F_OK)!=0 && wait_count<60){
+        printf("Waiting for queue file...(%d/60)",wait_count);
+        sleep(1);
+        wait_count++;
+    }
+    if(access(INPUT_FILE,F_OK)!=0){
+        perror("Queue file not found!\n");
+        perror("Make sure Acivate_Workloads is running!\n");
+        return 0; 
+    }
+    printf("Queue file found!\nWaiting for the process to start...\n");
+
+    sleep(2);
+
+    int queue_size=0;
+    workload workloads[MAX_PIDS];
+
+    while(fgets(line,sizeof(line),fp)){
+        char name[256];
+        char type[32];
+        int pid;
+        long start_time;
+
+        if(sscanf(line, "%255[^,],%31[^,],%d,%ld",name, type, &pid, &start_time) != 4) {
+            continue;
+        }
+
+        if(queue_size>=MAX_PIDS){
+            perror("Queue is too long!\n");
+            break;
+        }
+
+        strncpy(workloads[queue_size].name,name,sizeof(workloads[queue_size].type)-1);
+        strncpy(workloads[queue_size].type,type,sizeof(workloads[queue_size].type)-1);
+    
+        workloads[queue_size].pid=pid;
+        workloads[queue_size].start_t=start_time;
+        workloads[queue_size].samples=NULL;
+        workloads[queue_size].no_samples=0;
+        
+        queue_size++;
+    }
+    fclose(fp);
 }
 
 int read_info_stat(int pid,workload_cpu* proc){
