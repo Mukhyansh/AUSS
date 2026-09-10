@@ -62,5 +62,9 @@ int main(int argc,char* argv[]){
     printf("Total number of iterations:  %lld.\n",iter);
     printf("Runtime is: %.0f.\n",difftime(end,start));
 
+    free(A);
+    free(B);
+    free(C);
+
     return EXIT_SUCCESS;
 }
