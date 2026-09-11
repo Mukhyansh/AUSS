@@ -229,6 +229,31 @@ int analyze_queue(result* res,int* num_res){
         queue_size++;
     }
     fclose(fp);
+
+    if(queue_size==0){
+        perror("Queue is empty!\n");
+        return 0;
+    }
+    printf("Found %d PIDs in queue", queue_size);
+
+    *num_res=0;
+    for(int i=0;i<queue_size;i++){
+        collect_telemetry(&workloads[i]);
+
+        if(workloads[i].samples){
+            calculate_result(&workloads[i],&res[*num_res]);
+
+            printf("%s: CPU %.2f, IO %.2f MB/s", workloads[i].name,res[*num_res].cpu_p,res[*num_res].io_throughput);
+
+            (*num_res)++;
+
+            free(workloads[i].samples);
+        }
+        else{
+            perror("Failed to collect telemetry!\n");
+        }
+    }
+    return 1;
 }
 
 int read_info_stat(int pid,workload_cpu* proc){
