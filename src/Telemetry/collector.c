@@ -242,11 +242,8 @@ int analyze_queue(result* res,int* num_res){
 
         if(workloads[i].samples){
             calculate_result(&workloads[i],&res[*num_res]);
-
             printf("%s: CPU %.2f, IO %.2f MB/s", workloads[i].name,res[*num_res].cpu_p,res[*num_res].io_throughput);
-
             (*num_res)++;
-
             free(workloads[i].samples);
         }
         else{
@@ -284,4 +281,30 @@ int read_info_stat(int pid,workload_cpu* proc){
 
         
     return 1;
+}
+
+void store_into_csv(result* res,int num_res){
+    FILE* fp=fopen("result.csv","w");
+    if(!fp) return;
+    if(num_res==0){
+        perror("No results to store!\n");
+        return;
+    }
+
+    fprintf(fp,"workload_name,worklod_type,pid,elapsed_ms,cpu_percent,io_throughput_mbps,io_ops_per_sec,samples_collected\n");
+
+    for(int i=0;i<num_res;i++){
+        fprintf(fp,"%s,%s,%d,%ld,%.2f,%.4f,%.2f,%d\n",
+        res[i].name,
+        res[i].type,
+        res[i].pid,
+        res[i].elapsed_t,
+        res[i].cpu_p,
+        res[i].io_throughput,
+        res[i].io_ops_per_sec,
+        res[i].samples_collected
+        );
+    }
+    fclose(fp);
+    printf("Stored %d results to results.csv\n",num_res);
 }
