@@ -5,11 +5,13 @@
 #include<sys/wait.h>
 #include<stdarg.h>
 #include<limits.h>
+#include<string.h>
+#include<signal.h>
 
 #define TIME_CUT 100
 #define MAX_PIDS 10 //to be changed later obv
 #define MAX_SAMPLES 500//Skeptical about its value
-#define JIFFY_TO_MS 10;
+#define JIFFY_TO_MS 10
 
 #define OUTPUT_FILE "record.csv"
 #define INPUT_FILE "../Workloads/output_file.txt"
@@ -17,14 +19,14 @@
 typedef struct workload_cpu{
     long utime;
     long stime;
-    int nice
+    int nice;
 }workload_cpu;
 
 typedef struct workload_io{
-    unsigned int read_ops;
-    unsigned int write_ops;
-    unsigned int byte_read;
-    unsigned int write_read;
+    long read_ops;
+    long write_ops;
+    long byte_read;
+    long write_read;
 }workload_io;
 
 typedef struct sample{
@@ -52,19 +54,24 @@ typedef struct result{
     int samples_collected;
 }result;
 
-int read_info_stat(int pid,workload_cpu* proc);
 int read_info_io(int pid,workload_io* proc);
-void read_info_uptime();
-void infoLog();
+int isAlive(int pid);
+void collect_telemetry(workload* proc);
+void calculate_result(workload* proc,result* res);
+int analyze_queue(result* res,int* num_res);
+int read_info_stat(int pid,workload_cpu* proc);
+void store_into_csv(result* res,int num_res);
+// void read_info_uptime();
+// void infoLog();
 
 int read_info_io(int pid,workload_io* proc){
     char path[256];
-    FILE* fp=fopen(path,"r");
-    if(!fp) return 0;
     char line[256];
-
+    
     // puts(path[0]);
     snprintf(path,sizeof(path),"/proc/%d/io",pid);
+    FILE* fp=fopen(path,"r");
+    if(!fp) return 0;
 
     proc->byte_read=0;
     proc->write_read=0;
@@ -73,7 +80,7 @@ int read_info_io(int pid,workload_io* proc){
 
     while(fgets(line,sizeof(line),fp)){
         if(strncmp(line,"read_bytes:", 11)==0){
-            sscanf(line,"read_bytes: %d",&proc->byte_read);
+            sscanf(line,"read_bytes: %ld",&proc->byte_read);
         }
         else if(strncmp(line,"write_bytes:", 12)==0){
             sscanf(line,"write_bytes: %ld",&proc->write_read);
@@ -158,8 +165,8 @@ void calculate_result(workload* proc,result* res){
     //IO DATA
 
     long total_read=last->io.byte_read-first->io.byte_read;
-    long toral_write=last->io.write_read-first->io.write_read;
-    long total_io_bytes=total_read+toral_write;
+    long total_write=last->io.write_read-first->io.write_read;
+    long total_io_bytes=total_read+total_write;
 
     double io_throughput_mb=(double)total_io_bytes/elapsed_ms;
     io_throughput_mb/=1000000;
@@ -176,83 +183,116 @@ void calculate_result(workload* proc,result* res){
     strncpy(res->type,proc->type,sizeof(res->type)-1);
     res->io_ops_per_sec=io_ops_per_sec;
     res->samples_collected=proc->no_samples;
-    res->io_throughput=io_ops;
+    res->io_throughput=io_throughput_mb;
 }
 
-int analyze_queue(result* res,int* num_res){
-    FILE* fp=fopen(INPUT_FILE,"r");
-    if(!fp) return 1;
-
+int analyze_queue(result* res, int* num_res){
     char line[512];
-
-    int wait_count=0;
-    while(access(INPUT_FILE,F_OK)!=0 && wait_count<60){
-        printf("Waiting for queue file...(%d/60)",wait_count);
-        sleep(1);
-        wait_count++;
-    }
-    if(access(INPUT_FILE,F_OK)!=0){
-        perror("Queue file not found!\n");
-        perror("Make sure Acivate_Workloads is running!\n");
-        return 0; 
-    }
-    printf("Queue file found!\nWaiting for the process to start...\n");
-
-    sleep(2);
-
-    int queue_size=0;
+    int queue_size = 0;
     workload workloads[MAX_PIDS];
-
-    while(fgets(line,sizeof(line),fp)){
-        char name[256];
-        char type[32];
-        int pid;
-        long start_time;
-
-        if(sscanf(line, "%255[^,],%31[^,],%d,%ld",name, type, &pid, &start_time) != 4) {
-            continue;
-        }
-
-        if(queue_size>=MAX_PIDS){
-            perror("Queue is too long!\n");
-            break;
-        }
-
-        strncpy(workloads[queue_size].name,name,sizeof(workloads[queue_size].type)-1);
-        strncpy(workloads[queue_size].type,type,sizeof(workloads[queue_size].type)-1);
     
-        workloads[queue_size].pid=pid;
-        workloads[queue_size].start_t=start_time;
-        workloads[queue_size].samples=NULL;
-        workloads[queue_size].no_samples=0;
-        
-        queue_size++;
+    int wait_count = 0;
+    while(access(INPUT_FILE, F_OK) != 0 && wait_count < 60){
+        printf("Waiting for queue file... (%d/60)\n", wait_count++);
+        sleep(1);
     }
-    fclose(fp);
-
-    if(queue_size==0){
-        perror("Queue is empty!\n");
+    
+    if(access(INPUT_FILE, F_OK) != 0){
+        fprintf(stderr, "Queue file not found\n");
         return 0;
     }
-    printf("Found %d PIDs in queue", queue_size);
-
-    *num_res=0;
-    for(int i=0;i<queue_size;i++){
+    
+    printf("Queue file found!\n");
+    sleep(1);
+    
+    int no_new_pids_count = 0;
+    
+    while(no_new_pids_count < 10){  // Wait only 10 seconds after last PID
+        FILE* fp = fopen(INPUT_FILE, "r");
+        if(!fp) {
+            printf("Waiting for PIDs...\n");
+            sleep(1);
+            no_new_pids_count++;
+            continue;
+        }
+        
+        int old_queue_size = queue_size;
+        
+        while(fgets(line, sizeof(line), fp)){
+            int pid;
+            
+            if(sscanf(line, "pid: %d", &pid) != 1) continue;
+            
+            int exists = 0;
+            for(int j = 0; j < queue_size; j++){
+                if(workloads[j].pid == pid){
+                    exists = 1;
+                    break;
+                }
+            }
+            if(exists) continue;
+            
+            if(queue_size >= MAX_PIDS) break;
+            
+            strncpy(workloads[queue_size].name, "unknown", 
+                sizeof(workloads[queue_size].name) - 1);
+            strncpy(workloads[queue_size].type, "unknown", 
+                sizeof(workloads[queue_size].type) - 1);
+            
+            workloads[queue_size].pid = pid;
+            workloads[queue_size].start_t = time(NULL);
+            workloads[queue_size].samples = NULL;
+            workloads[queue_size].no_samples = 0;
+            
+            printf("Found PID %d\n", pid);
+            queue_size++;
+        }
+        
+        fclose(fp);
+        
+        if(queue_size > old_queue_size){
+            no_new_pids_count = 0;
+            printf("Waiting for more PIDs...\n");
+        } else {
+            no_new_pids_count++;
+            printf("No new PIDs (%d/10)\n", no_new_pids_count);
+        }
+        
+        sleep(1);
+    }
+    
+    if(queue_size == 0){
+        fprintf(stderr, "No PIDs found\n");
+        return 0;
+    }
+    
+    printf("\nAll PIDs collected: %d total\n", queue_size);
+    printf("Starting telemetry collection...\n\n");
+    
+    *num_res = 0;
+    for(int i = 0; i < queue_size; i++){
+        printf("[%d/%d] Collecting PID %d...\n", 
+            i+1, queue_size, workloads[i].pid);
+        
         collect_telemetry(&workloads[i]);
-
+        
         if(workloads[i].samples){
-            calculate_result(&workloads[i],&res[*num_res]);
-            printf("%s: CPU %.2f, IO %.2f MB/s", workloads[i].name,res[*num_res].cpu_p,res[*num_res].io_throughput);
+            calculate_result(&workloads[i], &res[*num_res]);
+            printf("PID %d: CPU %.2f%%, I/O %.4f MB/s\n\n",
+                workloads[i].pid,
+                res[*num_res].cpu_p,
+                res[*num_res].io_throughput);
             (*num_res)++;
             free(workloads[i].samples);
         }
         else{
-            perror("Failed to collect telemetry!\n");
+            fprintf(stderr, "Failed for PID %d\n\n", workloads[i].pid);
         }
+        sleep(10);
     }
+    
     return 1;
 }
-
 int read_info_stat(int pid,workload_cpu* proc){
     char path[MAX_PIDS*20];
     snprintf(path,sizeof(path),"/proc/%d/stat",pid);
@@ -307,4 +347,16 @@ void store_into_csv(result* res,int num_res){
     }
     fclose(fp);
     printf("Stored %d results to results.csv\n",num_res);
+}
+
+int main(int argc,char* argv[]){
+    int num_res;
+    result* results=malloc(sizeof(result)*MAX_PIDS);
+    if(!analyze_queue(results,&num_res)){
+        perror("Error analyzing queue!\n");
+        return EXIT_FAILURE;
+    }
+    store_into_csv(results,num_res);
+    free(results);
+    return EXIT_SUCCESS;
 }

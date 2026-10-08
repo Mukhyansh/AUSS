@@ -4,7 +4,7 @@
 #include<sys/wait.h>
 #include<time.h>
 
-#define TIME_SLICE "60"
+#define TIME_SLICE "25"
 // #define OFILE "output_file.txt"
 
 int main(void){
@@ -26,7 +26,7 @@ int main(void){
             execvp("./byteReader",(char*[]){"./byteReader",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen("output_file.txt","a");
+            FILE* fp=fopen("output_file.txt","w");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");
