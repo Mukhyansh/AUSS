@@ -293,6 +293,7 @@ int analyze_queue(result* res, int* num_res){
     
     return 1;
 }
+
 int read_info_stat(int pid,workload_cpu* proc){
     char path[MAX_PIDS*20];
     snprintf(path,sizeof(path),"/proc/%d/stat",pid);
@@ -323,30 +324,35 @@ int read_info_stat(int pid,workload_cpu* proc){
     return 1;
 }
 
-void store_into_csv(result* res,int num_res){
-    FILE* fp=fopen("result.csv","w");
+void store_into_csv(result* res, int num_res){
+    FILE* fp = fopen("result.csv", "a");
     if(!fp) return;
-    if(num_res==0){
+    
+    if(num_res == 0){
         perror("No results to store!\n");
         return;
     }
-
-    fprintf(fp,"workload_name,worklod_type,pid,elapsed_ms,cpu_percent,io_throughput_mbps,io_ops_per_sec,samples_collected\n");
-
-    for(int i=0;i<num_res;i++){
-        fprintf(fp,"%s,%s,%d,%ld,%.2f,%.4f,%.2f,%d\n",
-        res[i].name,
-        res[i].type,
-        res[i].pid,
-        res[i].elapsed_t,
-        res[i].cpu_p,
-        res[i].io_throughput,
-        res[i].io_ops_per_sec,
-        res[i].samples_collected
-        );
+    
+    int file_empty = (fseek(fp, 0, SEEK_END) == 0 && ftell(fp) == 0);
+    
+    if(file_empty){
+        fprintf(fp, "workload_name,workload_type,pid,elapsed_ms,cpu_percent,io_throughput_mbps,io_ops_per_sec,samples_collected\n");
     }
+    
+    for(int i = 0; i < num_res; i++){
+        fprintf(fp, "%-20s,%-15s,%10d,%12ld,%12.2f,%18.6f,%16.2f,%18d\n",
+            res[i].name,
+            res[i].type,
+            res[i].pid,
+            res[i].elapsed_t,
+            res[i].cpu_p,
+            res[i].io_throughput,
+            res[i].io_ops_per_sec,
+            res[i].samples_collected);
+    }
+    
     fclose(fp);
-    printf("Stored %d results to results.csv\n",num_res);
+    printf("Stored %d results to result.csv\n", num_res);
 }
 
 int main(int argc,char* argv[]){

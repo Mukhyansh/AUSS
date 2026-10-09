@@ -65,7 +65,7 @@ int main(void){
             execvp("./matrixMultiplication",(char*[]){"./matrixMultiplication",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen("output_file.txt","a");
+            FILE* fp=fopen("output_file.txt","w");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");
@@ -104,7 +104,7 @@ int main(void){
             execvp("./compressor",(char*[]){"./compressor",TIME_SLICE,NULL});
         }
         else{
-            FILE* fp=fopen("output_file.txt","a");
+            FILE* fp=fopen("output_file.txt","w");
             if(fp){
                 fprintf(fp,"pid: %d\n",pid);
                 fprintf(stderr,"Wrote the pid to file!\n");

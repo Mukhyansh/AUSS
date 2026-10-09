@@ -1,0 +1,12 @@
+/src/Workloads/compressor
+/src/Workloads/prime_runner.c
+/src/Workloads/byteReader
+/src/Workloads/matriMultiplication
+/src/Workloads/Activate_Workloads
+/src/Workloads/compressor/output_file.dat
+/src/Workloads/compressor/.vscode
+/.vscode
+/src/Junk/input_file.bin
+/src/Telemetry/collector
+/src/Telemetry/text.txt
+/src/Telemetry/pid_queue.c
