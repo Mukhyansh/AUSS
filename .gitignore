@@ -11,3 +11,5 @@
 /src/Telemetry/text.txt
 /src/Telemetry/pid_queue.c
 /src/Telemetry/a.out
+/src/Junk/largefile.bin
+/src/Junk/output_file.bin

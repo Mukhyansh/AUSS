@@ -54,6 +54,7 @@ typedef struct result{
     int samples_collected;
 }result;
 
+int get_workload_name(int pid,char* name);
 int read_info_io(int pid,workload_io* proc);
 int isAlive(int pid);
 void collect_telemetry(workload* proc);
@@ -63,6 +64,33 @@ int read_info_stat(int pid,workload_cpu* proc);
 void store_into_csv(result* res,int num_res);
 // void read_info_uptime();
 // void infoLog();
+
+int get_workload_name(int pid,char* name){
+    char path[256];
+    char buffer[4096];
+    
+    snprintf(path, sizeof(path), "/proc/%d/stat", pid);
+    
+    FILE* fp=fopen(path, "r");
+    if(!fp) return 0;
+    if(!fgets(buffer,sizeof(buffer), fp)){
+        fclose(fp);
+        return 0;
+    }
+    fclose(fp);
+
+    char* start=strchr(buffer,'(');
+    char* end=strchr(buffer,')');
+    
+    if(!start || !end || end <= start) return 0;
+    
+    int len=end-start-1;
+    if(len>39) len=39;
+    strncpy(name,start+1,len);
+    name[len]='\0';
+
+    return 1;
+}
 
 int read_info_io(int pid,workload_io* proc){
     char path[256];
@@ -85,11 +113,11 @@ int read_info_io(int pid,workload_io* proc){
         else if(strncmp(line,"write_bytes:", 12)==0){
             sscanf(line,"write_bytes: %ld",&proc->write_read);
         }
-        else if(strncmp(line,"read_ops:", 9)==0){
-            sscanf(line,"read_ops: %ld",&proc->read_ops);
+        else if(strncmp(line, "syscr:", 6) == 0){
+            sscanf(line, "syscr: %ld", &proc->read_ops);  // syscr = read ops
         }
-        else if(strncmp(line,"write_ops:",10)==0){
-            sscanf(line,"write_ops: %ld",&proc->write_ops);
+        else if(strncmp(line, "syscw:", 6) == 0){
+            sscanf(line, "syscw: %ld", &proc->write_ops);  // syscw = write ops
         }
     }
     fclose(fp);
@@ -233,11 +261,16 @@ int analyze_queue(result* res, int* num_res){
             if(exists) continue;
             
             if(queue_size >= MAX_PIDS) break;
-            
-            strncpy(workloads[queue_size].name, "unknown", 
-                sizeof(workloads[queue_size].name) - 1);
-            strncpy(workloads[queue_size].type, "unknown", 
-                sizeof(workloads[queue_size].type) - 1);
+
+            char workload_name[40];
+            if(get_workload_name(pid, workload_name)){
+                strncpy(workloads[queue_size].name,workload_name, 
+                    sizeof(workloads[queue_size].name) - 1);
+            } 
+            else{
+                strncpy(workloads[queue_size].name, "unknown", 
+                    sizeof(workloads[queue_size].name) - 1);
+            }
             
             workloads[queue_size].pid = pid;
             workloads[queue_size].start_t = time(NULL);
@@ -336,7 +369,7 @@ void store_into_csv(result* res, int num_res){
     int file_empty = (fseek(fp, 0, SEEK_END) == 0 && ftell(fp) == 0);
     
     if(file_empty){
-        fprintf(fp, "workload_name,workload_type,pid,elapsed_ms,cpu_percent,io_throughput_mbps,io_ops_per_sec,samples_collected\n");
+        fprintf(fp, "workload_name       ,workload_type  ,     pid,     elapsed_ms ,  cpu_percent,  io_throughput_mbps  , io_ops_per_sec ,  samples_collected\n");
     }
     
     for(int i = 0; i < num_res; i++){

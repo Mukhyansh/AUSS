@@ -89,7 +89,7 @@ test-matrix: matrixMultiplication
 
 test-reader: byteReader
 	@echo "Testing byteReader for 20 seconds..."
-	./byteReader 1
+	./byteReader 25 &
 
 test-all: Activate_Workloads
 	@echo "Testing Activate_Workloads..."
