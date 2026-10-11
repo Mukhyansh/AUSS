@@ -106,9 +106,9 @@ pip install pandas psycopg2-binary scikit-learn
 
 ## References
 
-- [Linux /proc filesystem](https://man7.org/linux/man-pages/man5/proc.5.html)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
-- [scikit-learn RandomForest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
+- [Linux /proc filesystem](https://www.baeldung.com/linux/total-process-cpu-usage)
+- [PostgreSQL Documentation](https://www.geeksforgeeks.org/postgresql/postgresql-connecting-to-the-database-using-python/)
+- [scikit-learn RandomForest](https://scikit-learn.org/stable/model_selection.html)
 
 ## Author
 
