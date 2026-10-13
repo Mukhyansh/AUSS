@@ -13,3 +13,6 @@
 /src/Telemetry/a.out
 /src/Junk/largefile.bin
 /src/Junk/output_file.bin
+/src/Telemetry/test
+/src/Telemetry/test.txt
+/.gitignore

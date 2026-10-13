@@ -10,7 +10,8 @@
 
 #define TIME_CUT 100
 #define MAX_PIDS 10 //to be changed later obv
-#define MAX_SAMPLES 500//Skeptical about its value
+// #define MAX_SAMPLES 500//Skeptical about its value (compressor workload for some reason is generating over 500 value everytime)
+#define MAX_SAMPLES 1000 //this will maybe work
 #define JIFFY_TO_MS 10
 
 #define OUTPUT_FILE "record.csv"

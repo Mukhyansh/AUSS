@@ -14,7 +14,11 @@ int main(int argc, char* argv[]){
         t = atoi(argv[1]);
     }
 
-    int fd_read = open("../Junk/input_file.bin", O_RDONLY | O_DIRECT);
+    //previously when I was writing this, i used a normal file which was not producing io operations,
+    //that was because the file was getting cached so the cpu was just accessing the cache again and again
+    //had to force disk actions
+    
+    int fd_read = open("../Junk/input_file.bin", O_RDONLY | O_DIRECT); //for direct disk operations
     int fd_write = open("../Junk/output_file.bin", O_WRONLY | O_CREAT | O_DIRECT, 0644);
 
     if(fd_read < 0 || fd_write < 0){
