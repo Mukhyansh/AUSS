@@ -5,6 +5,8 @@
 #include<time.h>
 #include<string.h>
 
+//why is this taking 100% cpu util? Idk but it works
+
 int main(int argc,char* argv[]){
     int n=1000;
     int t=30;

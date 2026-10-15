@@ -2,6 +2,8 @@
 #include<time.h>
 #include<unistd.h>
 
+//tester file for compressor workload!
+
 int main(int argc,char* argv[]){
 
     time_t start=time(NULL);

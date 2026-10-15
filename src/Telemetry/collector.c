@@ -10,8 +10,8 @@
 
 #define TIME_CUT 100
 #define MAX_PIDS 10 //to be changed later obv
-// #define MAX_SAMPLES 500//Skeptical about its value (compressor workload for some reason is generating over 500 value everytime)
-#define MAX_SAMPLES 1000 //this will maybe work
+// #define MAX_SAMPLES 500 //Skeptical about its value (compressor workload for some reason is generating over 500 samples everytime)
+#define MAX_SAMPLES 1000 //this might work
 #define JIFFY_TO_MS 10
 
 #define OUTPUT_FILE "record.csv"
@@ -191,7 +191,7 @@ void calculate_result(workload* proc,result* res){
 
     double cpu_percent=(double)cpu_time_ms/elapsed_ms *100.0;
 
-    //IO DATA
+    //io data
 
     long total_read=last->io.byte_read-first->io.byte_read;
     long total_write=last->io.write_read-first->io.write_read;
@@ -203,7 +203,7 @@ void calculate_result(workload* proc,result* res){
     long io_ops=(last->io.read_ops-first->io.read_ops)+(last->io.write_ops-first->io.write_ops);
     double io_ops_per_sec=io_ops/(elapsed_ms/1000);
 
-    //STORING RESULTS
+    //store results!
 
     res->cpu_p=cpu_percent;
     res->pid=proc->pid;

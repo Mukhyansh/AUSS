@@ -4,6 +4,9 @@
 #include<sys/wait.h>
 #include<time.h>
 
+//Activator file for all the workloads!
+//Stores the resultant pid's in the output_file.txt file.
+
 #define TIME_SLICE "25"
 // #define OFILE "output_file.txt"
 
