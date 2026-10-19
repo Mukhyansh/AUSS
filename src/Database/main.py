@@ -1,6 +1,5 @@
 import pandas as pd
 import psycopg2
-# from psycopg2.extras import execute_values
 
 def load_csv_to_postgresql(csv_file, db_name='auss', user='postgres', password='your_password'):
     try:
