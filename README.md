@@ -44,7 +44,7 @@ AUSS is a closed-loop system that:
 │                                                         │
 │  Phase 5: Policy Application (Future)                   │
 │  └─ Use predictions to apply optimized policies         │
-│                                                         │
+│  	(Rest in dev!)                                        │
 └─────────────────────────────────────────────────────────┘
 ```
 
